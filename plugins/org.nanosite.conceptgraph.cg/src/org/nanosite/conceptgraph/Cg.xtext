@@ -1,0 +1,40 @@
+grammar org.nanosite.conceptgraph.Cg with org.eclipse.xtext.common.Terminals
+
+generate cg "http://www.nanosite.org/conceptgraph/Cg"
+
+Model:
+	(imports+=Import)*
+	concept+=ConceptDef*;
+
+Import:
+	'import' importURI=STRING;
+
+
+ConceptDef:
+	name=ID
+		('(' param+=FormalParam (',' param+=FormalParam)* ')')?
+		('part-of' container+=[ConceptDef|ID])?
+		(('is-a'|'instance-of') parent+=[ConceptDef|ID])?
+		(':' detail+=Detail (',' detail+=Detail)*)?
+	'.';
+
+FormalParam:
+	(opt='$')? name=ID;
+
+
+Detail:
+	(annotation+=DetailAnnotation)*
+	((item=STRING) |
+	 (application=Application)
+	)
+	;
+
+enum DetailAnnotation:
+	todo | look_at | idea;
+
+Application:
+	concept=[ConceptDef|ID] '(' param+=ActualParam (',' param+=ActualParam)* ')';
+
+ActualParam:
+	(concept=[ConceptDef|ID]) | (string=STRING);
+

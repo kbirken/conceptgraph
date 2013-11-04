@@ -1,0 +1,20 @@
+homepage($url).
+web($url).
+
+contact($person).
+purpose($purpose).
+
+short_for($explanation).
+alias($otherName).
+
+source(other).
+related_to(other).
+
+part_of(container). contains(part).
+successor_of(predecessor).
+
+
+based_on(platform).
+
+
+transition(from, to).

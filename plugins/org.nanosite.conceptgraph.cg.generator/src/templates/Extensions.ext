@@ -1,0 +1,20 @@
+import org::nanosite::conceptgraph::cg;
+
+String toString(Detail d) :
+	d.application==null ?
+		d.item :
+		d.application.toString();
+
+String toString(ConceptDef c) :
+	c.name;
+
+String toString(Application a) :
+	a.concept.toString() + '(' + a.param.toString() + ')';
+
+String toString(List[ActualParam] ps) :
+	ps.size==0 ? "" :
+		ps.get(0).concept.toString() +
+			(ps.size>1 ?
+				", " + ps.withoutFirst().toString() :
+				""
+			);

@@ -1,0 +1,22 @@
+«IMPORT org::nanosite::conceptgraph::cg»
+
+«EXTENSION templates::Extensions»
+
+«DEFINE generate FOR List[ConceptDef]-»
+«IF !isEmpty»
+«EXPAND generate FOR (Model)first().eContainer()»
+«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE generate FOR Model-»
+«FILE "todos.txt"-»
+«FOREACH concept AS c-»
+«FOREACH c.detail AS d-»
+«IF d.annotation.contains("todo")-»
+«c.name»: «d.toString()»
+«ENDIF-»
+«ENDFOREACH-»
+«ENDFOREACH-»
+«ENDFILE-»
+«ENDDEFINE»

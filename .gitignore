@@ -1,5 +1,8 @@
 *.class
 
+*.xml_gen
+*.MF_gen
+
 # Package Files #
 *.jar
 *.war

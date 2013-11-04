@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<plugin>
+
+    <extension
+            point="org.eclipse.ui.editors">
+        <editor
+            class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="true"
+            extensions="cg"
+            id="org.nanosite.conceptgraph.Cg"
+            name="Cg Editor">
+        </editor>
+    </extension>
+    <extension
+        point="org.eclipse.ui.handlers">
+        <handler
+            class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclarationHandler"
+            commandId="org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclaration">
+            <activeWhen>
+                <reference
+                    definitionId="org.nanosite.conceptgraph.Cg.Editor.opened">
+                </reference>
+            </activeWhen>
+        </handler>
+        <handler
+            class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler"
+            commandId="org.nanosite.conceptgraph.Cg.validate">
+         <activeWhen>
+            <reference
+                    definitionId="org.nanosite.conceptgraph.Cg.Editor.opened">
+            </reference>
+         </activeWhen>
+      </handler>
+    </extension>
+    <extension point="org.eclipse.core.expressions.definitions">
+        <definition id="org.nanosite.conceptgraph.Cg.Editor.opened">
+            <and>
+                <reference definitionId="isActiveEditorAnInstanceOfXtextEditor"/>
+                <with variable="activeEditor">
+                    <test property="org.eclipse.xtext.ui.editor.XtextEditor.languageName" 
+                        value="org.nanosite.conceptgraph.Cg" 
+                        forcePluginActivation="true"/>
+                </with>        
+            </and>
+        </definition>
+    </extension>
+    <extension
+            point="org.eclipse.ui.preferencePages">
+        <page
+            class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+            id="org.nanosite.conceptgraph.Cg"
+            name="Cg">
+            <keywordReference id="org.nanosite.conceptgraph.ui.keyword_Cg"/>
+        </page>
+        <page
+            category="org.nanosite.conceptgraph.Cg"
+            class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
+            id="org.nanosite.conceptgraph.Cg.coloring"
+            name="Syntax Coloring">
+            <keywordReference id="org.nanosite.conceptgraph.ui.keyword_Cg"/>
+        </page>
+        <page
+            category="org.nanosite.conceptgraph.Cg"
+            class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
+            id="org.nanosite.conceptgraph.Cg.templates"
+            name="Templates">
+            <keywordReference id="org.nanosite.conceptgraph.ui.keyword_Cg"/>
+        </page>
+    </extension>
+    <extension
+        point="org.eclipse.ui.keywords">
+        <keyword
+            id="org.nanosite.conceptgraph.ui.keyword_Cg"
+            label="Cg"/>
+    </extension>
+    <extension
+         point="org.eclipse.ui.commands">
+      <command
+            description="Trigger expensive validation"
+            id="org.nanosite.conceptgraph.Cg.validate"
+            name="Validate">
+      </command>
+    </extension>
+    <extension point="org.eclipse.ui.menus">
+        <menuContribution
+            locationURI="popup:#TextEditorContext?after=group.edit">
+             <command
+                 commandId="org.nanosite.conceptgraph.Cg.validate"
+                 style="push"
+                 tooltip="Trigger expensive validation">
+            <visibleWhen checkEnabled="false">
+                <reference
+                    definitionId="org.nanosite.conceptgraph.Cg.Editor.opened">
+                </reference>
+            </visibleWhen>
+         </command>  
+         </menuContribution>
+    </extension>
+    <extension point="org.eclipse.ui.menus">
+		<menuContribution locationURI="popup:#TextEditorContext?endof=group.find">
+			<command commandId="org.eclipse.xtext.ui.editor.FindReferences">
+				<visibleWhen checkEnabled="false">
+                	<reference definitionId="org.nanosite.conceptgraph.Cg.Editor.opened">
+                	</reference>
+            	</visibleWhen>
+			</command>
+		</menuContribution>
+	</extension>
+	<extension point="org.eclipse.ui.handlers">
+	    <handler
+            class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler"
+            commandId="org.eclipse.xtext.ui.editor.FindReferences">
+            <activeWhen>
+                <reference
+                    definitionId="org.nanosite.conceptgraph.Cg.Editor.opened">
+                </reference>
+            </activeWhen>
+        </handler>
+    </extension>   
+
+<!-- adding resource factories -->
+
+	<extension
+		point="org.eclipse.emf.ecore.extension_parser">
+		<parser
+			class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			type="cg">
+		</parser>
+	</extension>
+	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
+        <resourceServiceProvider
+            class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+            uriExtension="cg">
+        </resourceServiceProvider>
+    </extension>
+
+
+
+
+	<!-- Quick Outline -->
+	<extension
+		point="org.eclipse.ui.handlers">
+		<handler 
+			class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
+			commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline">
+			<activeWhen>
+				<reference
+					definitionId="org.nanosite.conceptgraph.Cg.Editor.opened">
+				</reference>
+			</activeWhen>
+		</handler>
+	</extension>
+	<extension
+		point="org.eclipse.ui.commands">
+		<command
+			description="Open the quick outline."
+			id="org.eclipse.xtext.ui.editor.outline.QuickOutline"
+			name="Quick Outline">
+		</command>
+	</extension>
+	<extension point="org.eclipse.ui.menus">
+		<menuContribution
+			locationURI="popup:#TextEditorContext?after=group.open">
+			<command commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline"
+				style="push"
+				tooltip="Open Quick Outline">
+				<visibleWhen checkEnabled="false">
+					<reference definitionId="org.nanosite.conceptgraph.Cg.Editor.opened"/>
+				</visibleWhen>
+			</command>
+		</menuContribution>
+	</extension>
+   <!-- quickfix marker resolution generator -->
+   <extension
+         point="org.eclipse.ui.ide.markerResolution">
+      <markerResolutionGenerator
+            class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator">
+      </markerResolutionGenerator>
+   </extension>
+
+
+   <!-- additional views-->
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="ConceptGraph"
+            id="org.nanosite.conceptgraph">
+      </category>
+      <view
+            name="ConceptGraph View"
+            icon="icons/cgview.png"
+            category="org.nanosite.conceptgraph"
+            class="org.nanosite.conceptgraph.ui.cgviewer.ConceptGraphView"
+            id="org.nanosite.conceptgraph.ui.cgviewer.ConceptGraphView">
+      </view>
+   </extension>
+
+</plugin>
