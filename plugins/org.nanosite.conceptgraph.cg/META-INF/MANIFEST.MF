@@ -27,4 +27,6 @@ Export-Package: org.nanosite.conceptgraph,
  org.nanosite.conceptgraph.parseTreeConstruction,
  org.nanosite.conceptgraph.parser.antlr,
  org.nanosite.conceptgraph.parser.antlr.internal,
- org.nanosite.conceptgraph.validation
+ org.nanosite.conceptgraph.validation,
+ org.nanosite.conceptgraph.scoping,
+ org.nanosite.conceptgraph.formatting

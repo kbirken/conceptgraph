@@ -15,14 +15,14 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.xtext.parsetree.AbstractNode;
-import org.eclipse.xtext.parsetree.CompositeNode;
-import org.eclipse.xtext.parsetree.NodeUtil;
-import org.eclipse.xtext.parsetree.ParseTreeUtil;
+//import org.eclipse.xtext.parsetree.AbstractNode;
+//import org.eclipse.xtext.parsetree.CompositeNode;
+//import org.eclipse.xtext.parsetree.NodeUtil;
+//import org.eclipse.xtext.parsetree.ParseTreeUtil;
 import org.nanosite.conceptgraph.cg.ConceptDef;
 import org.nanosite.conceptgraph.cg.Model;
 
-public class ConceptGraphView extends XtextEditorObservingView {
+public class ConceptGraphView /* extends XtextEditorObservingView*/ {
 
 //	private GraphViewer viewer;
 //	private ScrollingGraphicalViewer viewer;
@@ -90,21 +90,21 @@ public class ConceptGraphView extends XtextEditorObservingView {
 //	}
 
 
-	@Override
-	public void createObservingPartControl(Composite parent) {
-//		viewer = new GraphViewer(parent.getShell(), SWT.NONE);
-//		viewer.setContentProvider(new MyContentProvider());
-//		viewer.setLabelProvider(new MyLabelProvider());
-//		viewer.setLayoutAlgorithm(new SpringLayoutAlgorithm(LayoutStyles.NO_LAYOUT_NODE_RESIZING));
-//		viewer.setInput(new Object());
-
-		//createGraphicalViewer(parent);
-
-		viewer = new ConceptGraphViewer();
-		FigureCanvas canvas = (FigureCanvas)viewer.createControl(parent);
-
-	}
-
+//	@Override
+//	public void createObservingPartControl(Composite parent) {
+////		viewer = new GraphViewer(parent.getShell(), SWT.NONE);
+////		viewer.setContentProvider(new MyContentProvider());
+////		viewer.setLabelProvider(new MyLabelProvider());
+////		viewer.setLayoutAlgorithm(new SpringLayoutAlgorithm(LayoutStyles.NO_LAYOUT_NODE_RESIZING));
+////		viewer.setInput(new Object());
+//
+//		//createGraphicalViewer(parent);
+//
+//		viewer = new ConceptGraphViewer();
+//		FigureCanvas canvas = (FigureCanvas)viewer.createControl(parent);
+//
+//	}
+//
 
 //	protected void createGraphicalViewer(Composite parent) {
 //		final RulerComposite rc = new RulerComposite(parent, SWT.NONE);
@@ -114,7 +114,7 @@ public class ConceptGraphView extends XtextEditorObservingView {
 //		rc.setGraphicalViewer(viewer);
 //		RulerProvider rp = new RulerProvider() {
 //			public Object getRuler() {
-//				// Minimalimplementierung. Gibt sich selbst als Ruler-Modell zur�ck
+//				// Minimalimplementierung. Gibt sich selbst als Ruler-Modell zur���ck
 //				return this;
 //			}
 //
@@ -139,7 +139,7 @@ public class ConceptGraphView extends XtextEditorObservingView {
 //		});
 //		viewer.addSelectionChangedListener(new ISelectionChangedListener() {
 //			public void selectionChanged(SelectionChangedEvent event) {
-//				// Selektionen im Viewer �bersetzen
+//				// Selektionen im Viewer ���bersetzen
 //				Object selPart = ((IStructuredSelection) event.getSelection()).getFirstElement();
 //				Object sel = (selPart instanceof EditPart) ? ((EditPart) selPart).getModel()
 //						: null;
@@ -166,37 +166,37 @@ public class ConceptGraphView extends XtextEditorObservingView {
 //		});
 //	}
 
-	@Override
-	public Viewer getViewer() {
-		return viewer;
-	}
+//	@Override
+//	public Viewer getViewer() {
+//		return viewer;
+//	}
 
-	@Override
-	public void selectionChanged(SelectionChangedEvent event) {
-		try {
-			ISelection selection = event.getSelection();
-			if (!selection.isEmpty() && selection instanceof ITextSelection) {
-				final ITextSelection textSel = (ITextSelection) selection;
-				int offset = textSel.getOffset();
-				System.out.println("selectionChanged(offset=" + offset + ")");
-				CompositeNode rootNode = getRootAST();
-				AbstractNode node =
-					ParseTreeUtil.getCurrentOrFollowingNodeByOffset(rootNode, offset);
-				EObject obj = NodeUtil.getNearestSemanticObject(node);
-				System.out.println("selection is " + obj.toString());
-
-				while (obj!=null && !(obj instanceof Model) && !(obj instanceof ConceptDef)) {
-					obj = obj.eContainer();
-				}
-				if (obj instanceof ConceptDef) {
-					viewer.selectionChanged((ConceptDef)obj);
-				} else {
-					viewer.selectionChanged(null);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
+//	@Override
+//	public void selectionChanged(SelectionChangedEvent event) {
+//		try {
+//			ISelection selection = event.getSelection();
+//			if (!selection.isEmpty() && selection instanceof ITextSelection) {
+//				final ITextSelection textSel = (ITextSelection) selection;
+//				int offset = textSel.getOffset();
+//				System.out.println("selectionChanged(offset=" + offset + ")");
+//				CompositeNode rootNode = getRootAST();
+//				AbstractNode node =
+//					ParseTreeUtil.getCurrentOrFollowingNodeByOffset(rootNode, offset);
+//				EObject obj = NodeUtil.getNearestSemanticObject(node);
+//				System.out.println("selection is " + obj.toString());
+//
+//				while (obj!=null && !(obj instanceof Model) && !(obj instanceof ConceptDef)) {
+//					obj = obj.eContainer();
+//				}
+//				if (obj instanceof ConceptDef) {
+//					viewer.selectionChanged((ConceptDef)obj);
+//				} else {
+//					viewer.selectionChanged(null);
+//				}
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//
+//	}
 }

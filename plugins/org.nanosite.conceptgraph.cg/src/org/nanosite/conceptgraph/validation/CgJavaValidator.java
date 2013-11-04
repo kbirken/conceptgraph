@@ -21,7 +21,7 @@ public class CgJavaValidator extends AbstractCgJavaValidator {
 			error("Concept applied with wrong number of params (" +
 					aParams + ", expected " + cParams + ")",
 					appl,
-					CgPackage.APPLICATION);
+					CgPackage.eINSTANCE.getApplication_Concept());
 			return;
 		}
 
@@ -30,10 +30,10 @@ public class CgJavaValidator extends AbstractCgJavaValidator {
 			ActualParam ap = appl.getParam().get(i);
 			boolean wantString = fp.getOpt()!=null && fp.getOpt().equals("$");
 			if (wantString && ap.getString()==null) {
-				error("Concept expected string parameter", ap, CgPackage.ACTUAL_PARAM);
+				error("Concept expected string parameter", ap, CgPackage.eINSTANCE.getActualParam_String());
 			}
 			if ((! wantString) && ap.getConcept()==null) {
-				error("Concept expected concept parameter", ap, CgPackage.ACTUAL_PARAM);
+				error("Concept expected concept parameter", ap, CgPackage.eINSTANCE.getActualParam_Concept());
 			}
 		}
 	}
