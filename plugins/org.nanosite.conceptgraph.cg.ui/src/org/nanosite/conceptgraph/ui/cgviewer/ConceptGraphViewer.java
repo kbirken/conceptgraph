@@ -39,7 +39,7 @@ public class ConceptGraphViewer extends Viewer implements MouseListener {
 	 */
 	public final Control createControl (Composite parent) {
 		canvas = new FigureCanvas(parent, lws);
-		//installRootFigure();
+//		installRootFigure();
 		return canvas;
 	}
 
@@ -103,13 +103,13 @@ public class ConceptGraphViewer extends Viewer implements MouseListener {
 	@Override
 	public void refresh() {
 		// TODO Auto-generated method stub
-		//lws.getUpdateManager().performUpdate();
+		lws.getUpdateManager().performUpdate();
 
 	}
 
 
 	@Override
-	public void setInput(Object input) {
+	public void setInput (Object input) {
 		if (input==null) {
 			root = null;
 			inputChanged();

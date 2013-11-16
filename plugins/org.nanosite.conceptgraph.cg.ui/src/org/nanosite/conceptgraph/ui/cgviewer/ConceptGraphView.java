@@ -1,37 +1,229 @@
 package org.nanosite.conceptgraph.ui.cgviewer;
 
-import org.eclipse.draw2d.geometry.Rectangle;
-import org.eclipse.draw2d.ColorConstants;
-import org.eclipse.draw2d.Figure;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.draw2d.FigureCanvas;
-import org.eclipse.draw2d.GridData;
-import org.eclipse.draw2d.Label;
-import org.eclipse.draw2d.LineBorder;
-import org.eclipse.draw2d.XYLayout;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.gef.EditDomain;
-import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IPostSelectionProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IPartListener;
+import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.part.ViewPart;
+import org.eclipse.xtext.resource.XtextResource;
 //import org.eclipse.xtext.parsetree.AbstractNode;
 //import org.eclipse.xtext.parsetree.CompositeNode;
 //import org.eclipse.xtext.parsetree.NodeUtil;
 //import org.eclipse.xtext.parsetree.ParseTreeUtil;
-import org.nanosite.conceptgraph.cg.ConceptDef;
+import org.eclipse.xtext.ui.editor.XtextEditor;
+import org.eclipse.xtext.ui.editor.model.IXtextDocument;
+import org.eclipse.xtext.ui.editor.model.IXtextModelListener;
+import org.eclipse.xtext.ui.editor.utils.EditorUtils;
+import org.eclipse.xtext.util.concurrent.IUnitOfWork;
 import org.nanosite.conceptgraph.cg.Model;
 
-public class ConceptGraphView /* extends XtextEditorObservingView*/ {
+public class ConceptGraphView extends ViewPart implements IPartListener, ISelectionChangedListener {
 
+	private static String viewId = "org.nanosite.conceptgraph.ui.cgviewer";
+
+	private static ConceptGraphView instance;
+
+	private XtextEditor activeEditor;
+	private IFile activeFile;
+	private Model activeModel;
+
+	private IPartListener partListener;
+	private IResourceChangeListener resourceChangeListener;
+	private CgControlAdapter controlAdapter;
+	private ViewUpdateOnModelChange modelChangeListener;
+	
+	public Composite parent;
+	
 //	private GraphViewer viewer;
 //	private ScrollingGraphicalViewer viewer;
 	private ConceptGraphViewer viewer;
+	private FigureCanvas canvas;
 
 	// GEF-EditDomain cares for state of the view
-	private EditDomain editDomain = new EditDomain();
+//	private EditDomain editDomain = new EditDomain();
+
+	public ConceptGraphView() {
+//		this.previousIntermediateModel = null;
+//		this.displayLabel = false;
+	}
+	
+	@Override
+	public void init (IViewSite site) throws PartInitException {
+		super.init(site);
+		site.getPage().addPartListener(this);
+	}
+
+	@Override
+	public void dispose() {
+		removeModelListener();
+		getSite().getPage().removePartListener(this);
+		super.dispose();
+	}
+
+    public static ConceptGraphView getInstance() {
+    	if (instance == null) {
+	        IWorkbenchPage activePage = getActivePage();
+	        if (activePage != null) {
+	            instance = (ConceptGraphView) activePage.findView(viewId);
+	        }
+    	}
+        return instance;
+    }
+    
+	private static IWorkbenchPage getActivePage() {
+		if (PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null) {
+			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			if (activePage != null) {
+				return activePage;
+			}
+		}
+		return null;
+	}
 
 
+
+	@Override
+	public void createPartControl(Composite parent) {
+		this.parent = parent;
+		partListener = new CgEditorPartListener();
+		resourceChangeListener = new ResourceChangeListener();
+		controlAdapter = new CgControlAdapter();
+		parent.addControlListener(controlAdapter);
+		
+		IWorkbenchPage activePage = getActivePage();
+		if (activePage != null) {
+			activePage.addPartListener(partListener);
+		}
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener, IResourceChangeEvent.POST_BUILD);
+		
+//		selectionListener = new GraphSelectionListener();
+//		injector.injectMembers(selectionListener);
+//		graph = new Graph(parent, SWT.NONE);
+//		graph.addSelectionListener(selectionListener);
+		activeEditor = EditorUtils.getActiveXtextEditor();
+		if (activeEditor != null) {
+			activeFile = (IFile) activeEditor.getEditorInput().getAdapter(IFile.class);
+		}
+
+		viewer = new ConceptGraphViewer();
+		canvas = (FigureCanvas)viewer.createControl(parent);
+
+		updateModel(false);
+	}
+	
+
+	@Override
+	public void setFocus() {
+		viewer.getControl().setFocus();
+	}
+
+	public void applyLayout() {
+//		graph.applyLayout();
+	}
+	
+
+	public IFile getActiveFile() {
+		return activeFile;
+	}
+	
+	public void setActiveFile(IFile activeFile) {
+		this.activeFile = activeFile;
+	}
+	
+	public void setActiveEditor(XtextEditor activeEditor) {
+		this.activeEditor = activeEditor;
+	}
+	
+	public XtextEditor getActiveEditor() {
+		return activeEditor;
+	}
+	
+	public Model getActiveModel() {
+		return activeModel;
+	}
+
+	/**
+	 * Updates the contract viewer's internal model. 
+	 * 
+	 * @param forceUpdate if true, the update will be performed even if there are no structural changes between the previous and the current states of the graph model. 
+	 */
+	public void updateModel(final boolean forceUpdate) {
+		if (activeEditor != null) {
+			if (viewer!=null) {
+				viewer.setInput(activeEditor.getDocument());
+			}
+
+			modelChangeListener = new ViewUpdateOnModelChange(viewer, this);
+
+//			activeEditor.getDocument().readOnly(new IUnitOfWork.Void<XtextResource>() {
+//				@Override
+//				public void process(XtextResource resource) throws Exception {
+//					if (resource != null) {
+//						for (EObject obj : resource.getContents()) {
+//							// TODO
+////							if (obj instanceof FModel) {
+////								activeModel = (FModel) obj;
+////								intermediateModel = new IntermediateFrancaGraphModel(activeModel, displayLabel);
+////								break;
+////							}
+//						}
+//					}
+//				}
+//			});
+		}
+	
+//		Display.getDefault().asyncExec(new Runnable() {
+//			@Override
+//			public void run() {
+//				// TODO
+//				if (forceUpdate || (intermediateModel != null && (previousIntermediateModel == null || !previousIntermediateModel.equals(intermediateModel)))) {
+//					graph.setVisible(false);
+//					graph.clear();
+//					intermediateModel.getGraphNodes(graph);
+//					intermediateModel.getGraphConnections(graph);
+//					graph.applyLayoutNow();
+//					graph.setVisible(true);
+//					previousIntermediateModel = intermediateModel;
+//				}
+//			}
+//		});
+	}
+
+	
+	/**
+	 * Clears all the data structures related to the view (e.g. resets the viewer).
+	 */
+	public void clear() {
+		this.activeEditor = null;
+		this.activeFile = null;
+		this.activeModel = null;
+//		this.intermediateModel = null;
+//		this.previousIntermediateModel = null;
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				// TODO
+//				if (!graph.isDisposed()) {
+//					graph.clear();					
+//				}
+			}
+		});
+	}
 
 //	static class MyContentProvider implements IGraphContentProvider {
 //
@@ -199,4 +391,141 @@ public class ConceptGraphView /* extends XtextEditorObservingView*/ {
 //		}
 //
 //	}
+	
+   private void extractModel (IXtextDocument document) {
+      Model newRoot = document.readOnly(new IUnitOfWork<Model, XtextResource>()
+      {
+         public Model exec(final XtextResource state) throws Exception
+         {
+//        	 rootAST = null;
+//        	 IParseResult parseResult = state.getParseResult();
+//        	 if (parseResult!=null) {
+//        		 rootAST = parseResult.getRootNode();
+//        	 }
+
+            if (state.getContents().isEmpty()) {
+               return null;
+            }
+
+            EObject root = state.getContents().get(0);
+            if (! (root instanceof Model))
+            	return null;
+            return (Model)root;
+         }
+      });
+   }
+   
+   
+   private static final class ViewUpdateOnModelChange implements IXtextModelListener
+   {
+      private final ConceptGraphViewer viewer;
+      private final ConceptGraphView view;
+
+      private ViewUpdateOnModelChange (ConceptGraphViewer v, ConceptGraphView view) {
+         this.viewer = v;
+         this.view = view;
+      }
+
+      public void modelChanged (XtextResource resource) {
+         runInSWTThread(new Runnable()
+         {
+            public void run()
+            {
+               IXtextDocument document = view.activeEditor.getDocument();
+               view.extractModel(document);
+               viewer.setInput(document);
+               viewer.refresh();
+            }
+
+         });
+      }
+
+      /**
+       * Runs the runnable in the SWT thread. (Simply runs the runnable if the current
+       * thread is the UI thread, otherwise calls the runnable in asyncexec.)
+       */
+      private void runInSWTThread(Runnable runnable)
+      {
+         if(Display.getCurrent() == null) {
+            Display.getDefault().asyncExec(runnable);
+         } else {
+            runnable.run();
+         }
+      }
+   }
+
+	public final void partActivated(IWorkbenchPart part) {
+		if (part instanceof XtextEditor) {
+			if (viewer.getInput() != ((XtextEditor) part).getDocument()) {
+				removeModelListener();
+				activeEditor = (XtextEditor) part;
+				extractModel(activeEditor.getDocument());
+				viewer.setInput(activeEditor.getDocument());
+				activeEditor.getDocument()
+						.addModelListener(modelChangeListener);
+
+				ISelectionProvider selectionProvider = activeEditor.getSelectionProvider();
+				if (selectionProvider instanceof IPostSelectionProvider) {
+					IPostSelectionProvider provider = (IPostSelectionProvider) selectionProvider;
+					provider.addPostSelectionChangedListener(this);
+				} else {
+					selectionProvider.addSelectionChangedListener(this);
+				}
+			}
+		} else if (part instanceof EditorPart) {
+			removeModelListener();
+			viewer.setInput(null);
+		}
+	}
+
+	private void removeModelListener() {
+		if (activeEditor != null && activeEditor.getDocument() != null) {
+			activeEditor.getDocument().removeModelListener(
+					modelChangeListener);
+
+			ISelectionProvider selectionProvider = activeEditor.getSelectionProvider();
+			if (selectionProvider instanceof IPostSelectionProvider) {
+				IPostSelectionProvider provider = (IPostSelectionProvider) selectionProvider;
+				provider.removePostSelectionChangedListener(this);
+			} else {
+				selectionProvider.removeSelectionChangedListener(this);
+			}
+		}
+		activeEditor = null;
+	}
+
+	@Override
+	public void selectionChanged(SelectionChangedEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void partBroughtToTop(IWorkbenchPart part) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void partClosed(IWorkbenchPart part) {
+	      if (part==activeEditor)
+	      {
+	         removeModelListener();
+	         viewer.setInput(null);
+	      }
+	}
+
+	@Override
+	public void partDeactivated(IWorkbenchPart part) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void partOpened(IWorkbenchPart part) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
 }

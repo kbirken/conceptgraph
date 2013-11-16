@@ -191,12 +191,14 @@
             id="org.nanosite.conceptgraph">
       </category>
       <view
-            name="ConceptGraph View"
-            icon="icons/cgview.png"
+            allowMultiple="false"
             category="org.nanosite.conceptgraph"
-            class="org.nanosite.conceptgraph.ui.cgviewer.ConceptGraphView"
-            id="org.nanosite.conceptgraph.ui.cgviewer.ConceptGraphView">
-      </view>
+            class="org.nanosite.conceptgraph.ui.CgExecutableExtensionFactory:org.nanosite.conceptgraph.ui.cgviewer.ConceptGraphView"
+            icon="icons/cgview_icon.png"
+            id="org.nanosite.conceptgraph.ui.cgviewer.ConceptGraphView"
+            name="ConceptGraph View"
+            restorable="true"
+       /> 
    </extension>
 
 </plugin>
